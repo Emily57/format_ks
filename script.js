@@ -1,18 +1,18 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const inputText = document.getElementById("input-text");
-  const outputText = document.getElementById("output-text");
+  const input = document.getElementById("input");
+  const output = document.getElementById("output");
   const copyButton = document.getElementById("copy-button");
 
-  // 入力テキストが変更されたときの処理
-  inputText.addEventListener("input", () => {
-    const processedText = textProcessor.process(inputText.value);
-    outputText.textContent = processedText;
+  // 入力テキストが変更されたときに処理を実行
+  input.addEventListener("input", () => {
+    const processedText = textProcessor.process(input.value);
+    output.textContent = processedText;
   });
 
   // コピーボタンの処理
   copyButton.addEventListener("click", async () => {
     try {
-      await navigator.clipboard.writeText(outputText.textContent);
+      await navigator.clipboard.writeText(output.textContent);
       copyButton.textContent = "コピーしました！";
       setTimeout(() => {
         copyButton.textContent = "コピー";
