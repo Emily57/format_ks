@@ -33,8 +33,8 @@ const textRules = [
   },
   {
     name: "空行制限ルール",
-    pattern: /\n{2,}/g,
-    replacement: "\n",
+    pattern: /\n{3,}/g,
+    replacement: "\n\n",
     description: "連続する空行を1行に制限",
   },
   // 新しいルールはここに追加
@@ -80,6 +80,10 @@ class TextProcessor {
 
       // 空行の処理
       if (!line) {
+        // 次の行が; endの場合は空行を追加しない
+        if (i < lines.length - 1 && lines[i + 1].trim() === "; end") {
+          skipNextEmptyLine = true;
+        }
         if (!skipNextEmptyLine) {
           result.push("");
         }
@@ -115,7 +119,13 @@ class TextProcessor {
       result.push("  ".repeat(currentIndent) + line);
     }
 
-    return result.join("\n");
+    // 結果の文字列を生成
+    let processedText = result.join("\n");
+
+    // ; endの前の空行を削除
+    processedText = processedText.replace(/\n\s*\n\s*; end/g, "\n  ; end");
+
+    return processedText;
   }
 }
 
