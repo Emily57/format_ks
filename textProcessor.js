@@ -1,124 +1,141 @@
-// テキスト処理ルールの定義
-const textRules = [
-  {
-    name: "改行ルール",
-    pattern: (tags) =>
-      new RegExp(
-        `(${tags.map((tag) => `\\[${tag}\\]`).join("|")})(?!\\n)`,
-        "g"
-      ),
-    replacement: "$1\n",
-    description: "特定のタグの後に改行を追加（既に改行がある場合は追加しない）",
-    tags: ["r", "p", "s", "iscript", "endscript"], // 改行を追加するタグのリスト
-  },
-  {
-    name: "pマーカー後空行ルール",
-    pattern: /\[p\]\n(?!\n|; end)/g,
-    replacement: "[p]\n\n",
-    description:
-      "[p]の後に空行を追加（既に空行がある場合、または次の行が; endの場合は追加しない）",
-  },
-  {
-    name: "pマーカーとend間空行削除ルール",
-    pattern: /\[p\]\n\n(?=; end)/g,
-    replacement: "[p]\n",
-    description: "[p]と; endの間の空行を削除",
-  },
-  {
-    name: "空行制限ルール",
-    pattern: /\n{3,}/g,
-    replacement: "\n\n",
-    description: "連続する空行を1行に制限",
-  },
-  // 新しいルールはここに追加
-];
-
 // テキスト処理クラス
 class TextProcessor {
   constructor() {
-    this.rules = textRules;
+    // タグのリスト
+    this.newlineAfterTags = ["r", "p", "s", "iscript", "endscript"];
   }
 
-  // テキストに全てのルールを適用
+  // メインの処理メソッド
   process(text) {
     let processedText = text;
-    // まず基本的なルールを適用
-    for (const rule of this.rules) {
-      processedText = this.applyRule(processedText, rule);
-    }
-    // その後インデントを適用
+
+    // 1. 空行の削除
+    processedText = this.removeEmptyLines(processedText);
+
+    // 2. 行頭・行末の空白を削除
+    processedText = this.trimLines(processedText);
+
+    // 3. 特定のタグ後の改行処理
+    processedText = this.addNewlineAfterTags(processedText);
+
+    // 4. [p]タグ後の空行追加
+    processedText = this.addEmptyLineAfterP(processedText);
+
+    // 5. ; end後の空行追加
+    processedText = this.addEmptyLineAfterEnd(processedText);
+
+    // 6. [iscript], [endscript]の行頭化
+    processedText = this.moveScriptTagsToLineStart(processedText);
+
+    // 7. インデント処理
     processedText = this.applyIndentation(processedText);
+
     return processedText;
   }
 
-  // 個別のルールを適用
-  applyRule(text, rule) {
-    if (rule.pattern instanceof Function) {
-      // パターンが関数の場合は、タグリストを使用してパターンを生成
-      return text.replace(rule.pattern(rule.tags), rule.replacement);
-    }
-    return text.replace(rule.pattern, rule.replacement);
+  // 空行を削除
+  removeEmptyLines(text) {
+    return text
+      .split("\n")
+      .filter((line) => line.trim() !== "")
+      .join("\n");
   }
 
-  // インデントを適用
+  // 各行の空白を削除
+  trimLines(text) {
+    return text
+      .split("\n")
+      .map((line) => line.trim())
+      .join("\n");
+  }
+
+  // 特定のタグ後に改行を追加
+  addNewlineAfterTags(text) {
+    const pattern = new RegExp(
+      `(${this.newlineAfterTags
+        .map((tag) => `\\[${tag}\\]`)
+        .join("|")})(?!\\n)`,
+      "g"
+    );
+    return text.replace(pattern, "$1\n");
+  }
+
+  // [p]タグ後に空行を追加
+  addEmptyLineAfterP(text) {
+    return text
+      .replace(/\[p\]\n(?!\n|; end)/g, "[p]\n\n")
+      .replace(/\[p\]\n\n(?=; end)/g, "[p]\n");
+  }
+
+  // ; end後に空行を追加
+  addEmptyLineAfterEnd(text) {
+    return text
+      .replace(/; end\n(?!\n|; end)/g, "; end\n\n")
+      .replace(/; end\n\n(?=; end)/g, "; end\n");
+  }
+
+  // [iscript], [endscript]を行頭に移動
+  moveScriptTagsToLineStart(text) {
+    return text.replace(/([^\n])\[(iscript|endscript)\]/g, "$1\n[$2]");
+  }
+
+  // インデントの適用
   applyIndentation(text) {
     const lines = text.split("\n");
     const result = [];
     let currentIndent = 0;
     let blockStack = [];
-    let skipNextEmptyLine = false;
+    let isInScript = false;
 
-    for (let i = 0; i < lines.length; i++) {
-      let line = lines[i].trim();
+    for (const line of lines) {
+      const trimmedLine = line.trim();
 
-      // 空行の処理
-      if (!line) {
-        // 次の行が; endの場合は空行を追加しない
-        if (i < lines.length - 1 && lines[i + 1].trim() === "; end") {
-          skipNextEmptyLine = true;
-        }
-        if (!skipNextEmptyLine) {
-          result.push("");
-        }
-        skipNextEmptyLine = false;
+      // 空行の場合はそのまま追加
+      if (trimmedLine === "") {
+        result.push("");
         continue;
       }
 
-      // 特定のタグの後の空行をスキップ
-      if (line.includes("[to_note_during_scenario")) {
-        skipNextEmptyLine = true;
+      // [iscript]ブロックの開始
+      if (trimmedLine.includes("[iscript]")) {
+        isInScript = true;
+        result.push("  ".repeat(currentIndent) + trimmedLine);
+        currentIndent++;
+        continue;
       }
 
-      // ラベルの処理（*で始まる行と; *で始まる行）
-      if (line.startsWith("*") || line.startsWith("; *")) {
-        blockStack.push(line);
+      // [endscript]ブロックの終了
+      if (trimmedLine.includes("[endscript]")) {
+        isInScript = false;
+        if (currentIndent > 0) currentIndent--;
+        result.push("  ".repeat(currentIndent) + trimmedLine);
+        continue;
+      }
+
+      // ラベル行の処理
+      if (trimmedLine.startsWith("*") || trimmedLine.startsWith("; *")) {
+        blockStack.push(trimmedLine);
         currentIndent = blockStack.length - 1;
-        result.push("  ".repeat(currentIndent) + line);
+        result.push("  ".repeat(currentIndent) + trimmedLine);
         currentIndent = blockStack.length;
         continue;
       }
 
-      // ブロックの終了をチェック
-      if (line === "; end") {
+      // ブロック終了の処理
+      if (trimmedLine === "; end") {
         if (blockStack.length > 0) {
           blockStack.pop();
           currentIndent = blockStack.length;
         }
-        result.push("  ".repeat(currentIndent) + line);
+        result.push("  ".repeat(currentIndent) + trimmedLine);
         continue;
       }
 
-      // 通常の行
-      result.push("  ".repeat(currentIndent) + line);
+      // 通常行の処理
+      result.push("  ".repeat(currentIndent) + trimmedLine);
     }
 
-    // 結果の文字列を生成
-    let processedText = result.join("\n");
-
-    // ; endの前の空行を削除
-    processedText = processedText.replace(/\n\s*\n\s*; end/g, "\n  ; end");
-
-    return processedText;
+    return result.join("\n");
   }
 }
 
