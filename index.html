@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>テキストフォーマッター</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>テキストフォーマッター</h1>
+      <div class="input-section">
+        <h2>入力</h2>
+        <textarea
+          id="input-text"
+          placeholder="ここにテキストを入力してください..."
+        ></textarea>
+      </div>
+      <div class="output-section">
+        <h2>出力</h2>
+        <div class="output-container">
+          <pre id="output-text"></pre>
+          <button id="copy-button">コピー</button>
+        </div>
+      </div>
+    </div>
+    <script src="textProcessor.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
