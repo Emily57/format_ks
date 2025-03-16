@@ -52,3 +52,12 @@ test
 
 [iscript] から [endscript] までを1つのブロックとし、ブロックごとに半角スペース2つのインデントを追加する
 
+タグに中身について、 = で始まり、半角スペース または ] で終わる文字や数字は「引数」とみなす。
+例: [bg storage=background/test.jpg time=2000]
+この場合、background/test.jpg と、2000 が引数
+すべての引数はテキストとして扱われるため、"（ダブルクォーテーション）で囲む必要がある。
+例: [bg storage="background/test.jpg" time="2000"]
+" で囲われていない引数は、" で囲むように修正する。すでに囲われているならそのままにする。
+なお、''で囲われているのだとしたら、それは不適切なので、"で囲み直してください。
+不適切な例: [bg storage='background/test.jpg' time='2000']
+修正した例: [bg storage="background/test.jpg' time='2000']

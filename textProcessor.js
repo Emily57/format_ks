@@ -30,6 +30,9 @@ class TextProcessor {
     // 7. インデント処理
     processedText = this.applyIndentation(processedText);
 
+    // 8. タグの引数を"で囲む
+    processedText = this.quoteTagArguments(processedText);
+
     return processedText;
   }
 
@@ -136,6 +139,36 @@ class TextProcessor {
     }
 
     return result.join("\n");
+  }
+
+  // タグの引数を"で囲む
+  quoteTagArguments(text) {
+    return text.replace(/\[([^\]]+)\]/g, (match, tagContent) => {
+      // タグ名と引数部分を分離
+      const [tagName, ...args] = tagContent.split(/\s+/);
+      if (args.length === 0) return match;
+
+      // 引数を処理
+      const processedArgs = args.map((arg) => {
+        if (!arg.includes("=")) return arg;
+        const [key, value] = arg.split("=");
+
+        // 値の処理
+        let processedValue = value;
+        // シングルクォートで囲まれている場合は、ダブルクォートに変換
+        if (value.startsWith("'") && value.endsWith("'")) {
+          processedValue = `"${value.slice(1, -1)}"`;
+        }
+        // クォートで囲まれていない場合は、ダブルクォートで囲む
+        else if (!value.startsWith('"') || !value.endsWith('"')) {
+          processedValue = `"${value}"`;
+        }
+
+        return `${key}=${processedValue}`;
+      });
+
+      return `[${tagName} ${processedArgs.join(" ")}]`;
+    });
   }
 }
 
