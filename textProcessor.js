@@ -144,30 +144,30 @@ class TextProcessor {
   // タグの引数を"で囲む
   quoteTagArguments(text) {
     return text.replace(/\[([^\]]+)\]/g, (match, tagContent) => {
-      // タグ名と引数部分を分離
-      const [tagName, ...args] = tagContent.split(/\s+/);
-      if (args.length === 0) return match;
+      // タグ名を抽出（最初の空白までの部分）
+      const tagName = tagContent.match(/^[^\s]+/)[0];
 
-      // 引数を処理
-      const processedArgs = args.map((arg) => {
-        if (!arg.includes("=")) return arg;
-        const [key, value] = arg.split("=");
+      // タグ名以降の部分を取得
+      const argsString = tagContent.slice(tagName.length).trim();
+      if (!argsString) return match;
 
-        // 値の処理
-        let processedValue = value;
-        // シングルクォートで囲まれている場合は、ダブルクォートに変換
-        if (value.startsWith("'") && value.endsWith("'")) {
-          processedValue = `"${value.slice(1, -1)}"`;
-        }
-        // クォートで囲まれていない場合は、ダブルクォートで囲む
-        else if (!value.startsWith('"') || !value.endsWith('"')) {
-          processedValue = `"${value}"`;
-        }
+      // 引数を正規表現で抽出
+      const argPattern = /([^\s=]+)=(?:'([^']*)'|"([^"]*)"|([^\s\]]+))/g;
+      let processedArgs = argsString;
+      let newArgsString = argsString;
 
-        return `${key}=${processedValue}`;
-      });
+      let matches;
+      while ((matches = argPattern.exec(argsString)) !== null) {
+        const [fullMatch, key, singleQuoted, doubleQuoted, unquoted] = matches;
+        let value = singleQuoted || doubleQuoted || unquoted;
 
-      return `[${tagName} ${processedArgs.join(" ")}]`;
+        // 新しい形式（ダブルクォートで囲む）
+        const newArg = `${key}="${value}"`;
+        // 元の引数をそのまま置換
+        newArgsString = newArgsString.replace(fullMatch, newArg);
+      }
+
+      return `[${tagName} ${newArgsString}]`;
     });
   }
 }

@@ -2,6 +2,8 @@
 
 ティラノスクリプト ks ファイル自動整形ツール仕様書
 
+script: SPECIFICATION.txtの仕様に従って、JSファイルを修正してください
+
 ## 概要
 
 このWebアプリケーションは、ユーザーが入力したティラノスクリプトの .ks テキストを整形し、可読性を向上させるツールです。
@@ -52,12 +54,15 @@ test
 
 [iscript] から [endscript] までを1つのブロックとし、ブロックごとに半角スペース2つのインデントを追加する
 
-タグに中身について、 = で始まり、半角スペース または ] で終わる文字や数字は「引数」とみなす。
-例: [bg storage=background/test.jpg time=2000]
-この場合、background/test.jpg と、2000 が引数
+タグ内の次のような要素を「引数」と呼びます。
+- 「='」で始まり、「'」で終わる文字や数字
+- 「="」で始まり、「"」で終わる文字や数字
+- 「='」や「="」では始まらないが、「=」で始まり、半角スペースまたは「]」で終わる文字や数字
+例: [bg storage=background/test.jpg time=2000 cond="aaa === bbb"]
+この場合、background/test.jpg と、2000と、"aaa === bbb"が引数
 すべての引数はテキストとして扱われるため、"（ダブルクォーテーション）で囲む必要がある。
-例: [bg storage="background/test.jpg" time="2000"]
+例: [bg storage="background/test.jpg" time="2000" cond="aaa === bbb"]
 " で囲われていない引数は、" で囲むように修正する。すでに囲われているならそのままにする。
 なお、''で囲われているのだとしたら、それは不適切なので、"で囲み直す。
-不適切な例: [bg storage='background/test.jpg' time='2000']
-修正した例: [bg storage="background/test.jpg" time="2000"]
+不適切な例: [bg storage='background/test.jpg' time='2000' cond='aaa === bbb']
+修正した例: [bg storage="background/test.jpg" time="2000" cond="aaa === bbb"]
