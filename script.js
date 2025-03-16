@@ -25,4 +25,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 2000);
     }
   });
+
+  // アコーディオンの機能を実装
+  const accordionHeader = document.querySelector(".accordion-header");
+  const accordionContent = document.querySelector(".accordion-content");
+
+  accordionHeader.addEventListener("click", function () {
+    this.classList.toggle("active");
+    accordionContent.classList.toggle("hidden");
+  });
 });

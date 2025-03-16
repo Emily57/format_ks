@@ -8,6 +8,68 @@
   </head>
   <body>
     <h1>MG式ks自動整形ツール</h1>
+    <div class="specification-section">
+      <h2 class="accordion-header">
+        <span class="accordion-icon">▶︎</span>仕様
+      </h2>
+      <div class="spec-content accordion-content hidden">
+        <section class="spec-block">
+          <h3>前提</h3>
+          <ul>
+            <li><code>[]</code>で囲まれたものを<b>タグ</b>と呼ぶ</li>
+            <li>
+              <code>*</code>または<code>; *</code
+              >で始まる行を<b>ラベル</b>と呼ぶ
+            </li>
+          </ul>
+        </section>
+
+        <section class="spec-block">
+          <h3>処理ルール</h3>
+          <p class="note">上から順に処理を実行</p>
+          <ul>
+            <li>空行をすべて削除</li>
+            <li>各行の先頭と末尾にある余分な空白を削除</li>
+            <li>
+              以下のタグが行末にない場合、改行を追加して行末にする
+              <div class="code-block">
+                <code>[r]</code>, <code>[p]</code>, <code>[s]</code>,
+                <code>[iscript]</code>, <code>[endscript]</code>
+              </div>
+            </li>
+            <li>
+              <code>[p]</code>の次の行に必ず空行を1行追加。ただし、次の行が<code
+                >; end</code
+              >の場合は追加しない
+            </li>
+            <li>
+              <code>; end</code>の次の行に空行を1行追加。ただし、次の行が<code
+                >; end</code
+              >の場合は追加しない
+            </li>
+            <li>
+              <code>[iscript]</code> または
+              <code>[endscript]</code
+              >が行頭にない場合、直前に改行を追加して、行頭にする
+            </li>
+            <li>
+              ラベル行（<code>*test</code> など）から<code>; end</code
+              >の行までを1つのブロックとし、ブロックごとに半角スペース2つのインデントを追加する
+            </li>
+            <li>
+              ネスト（入れ子）になっている場合、インデントは 2つ → 4つ → 6つ...
+              と増加させる。ただし、その行が空行の場合はインデントを追加しない
+            </li>
+            <li>
+              <code>[iscript]</code> から
+              <code>[endscript]</code
+              >までを1つのブロックとし、ブロックごとに半角スペース2つのインデントを追加する
+            </li>
+            <li>タグの中の「引数」は、「"（ダブルクォーテーション）」で囲む</li>
+          </ul>
+        </section>
+      </div>
+    </div>
     <div class="container">
       <div class="input-section">
         <h2>入力</h2>
