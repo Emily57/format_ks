@@ -14,12 +14,6 @@ const textRules = [
       "コメントアウト（;で始まる文字）の前に改行を追加（既存の改行がない場合）",
   },
   {
-    name: "空行制限ルール",
-    pattern: /\n{3,}/g,
-    replacement: "\n\n",
-    description: "連続する空行を1行に制限",
-  },
-  {
     name: "pマーカー後空行ルール",
     pattern: /\[p\]\n(?!\n|; end)/g,
     replacement: "[p]\n\n",
@@ -31,6 +25,12 @@ const textRules = [
     pattern: /\[p\]\n\n(?=; end)/g,
     replacement: "[p]\n",
     description: "[p]と; endの間の空行を削除",
+  },
+  {
+    name: "空行制限ルール",
+    pattern: /\n{2,}/g,
+    replacement: "\n",
+    description: "連続する空行を1行に制限",
   },
   // 新しいルールはここに追加
 ];
@@ -64,14 +64,23 @@ class TextProcessor {
     const result = [];
     let currentIndent = 0;
     let blockStack = [];
+    let skipNextEmptyLine = false;
 
     for (let i = 0; i < lines.length; i++) {
       let line = lines[i].trim();
 
-      // 空行はそのまま追加
+      // 空行の処理
       if (!line) {
-        result.push("");
+        if (!skipNextEmptyLine) {
+          result.push("");
+        }
+        skipNextEmptyLine = false;
         continue;
+      }
+
+      // 特定のタグの後の空行をスキップ
+      if (line.includes("[to_note_during_scenario")) {
+        skipNextEmptyLine = true;
       }
 
       // ラベルの処理（*で始まる行と; *で始まる行）
