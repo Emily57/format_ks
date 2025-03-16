@@ -12,13 +12,6 @@ const textRules = [
     tags: ["r", "p", "s", "iscript", "endscript"], // 改行を追加するタグのリスト
   },
   {
-    name: "コメントアウト前改行ルール",
-    pattern: /([^\n]);/g,
-    replacement: "$1\n;",
-    description:
-      "コメントアウト（;で始まる文字）の前に改行を追加（既存の改行がない場合）",
-  },
-  {
     name: "pマーカー後空行ルール",
     pattern: /\[p\]\n(?!\n|; end)/g,
     replacement: "[p]\n\n",
