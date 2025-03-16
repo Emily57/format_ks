@@ -2,9 +2,14 @@
 const textRules = [
   {
     name: "改行ルール",
-    pattern: /(\[r\]|\[p\])(?!\n)/g,
+    pattern: (tags) =>
+      new RegExp(
+        `(${tags.map((tag) => `\\[${tag}\\]`).join("|")})(?!\\n)`,
+        "g"
+      ),
     replacement: "$1\n",
-    description: "[r]と[p]の後に改行を追加（既に改行がある場合は追加しない）",
+    description: "特定のタグの後に改行を追加（既に改行がある場合は追加しない）",
+    tags: ["r", "p", "s", "iscript", "endscript"], // 改行を追加するタグのリスト
   },
   {
     name: "コメントアウト前改行ルール",
@@ -55,6 +60,10 @@ class TextProcessor {
 
   // 個別のルールを適用
   applyRule(text, rule) {
+    if (rule.pattern instanceof Function) {
+      // パターンが関数の場合は、タグリストを使用してパターンを生成
+      return text.replace(rule.pattern(rule.tags), rule.replacement);
+    }
     return text.replace(rule.pattern, rule.replacement);
   }
 
