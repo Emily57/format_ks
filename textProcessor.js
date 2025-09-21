@@ -116,7 +116,14 @@ class TextProcessor {
       }
 
       // ラベル行の処理
-      if (trimmedLine.startsWith("*") || trimmedLine.startsWith("; *")) {
+      if (
+        (trimmedLine.startsWith("*") || trimmedLine.startsWith("; *")) &&
+        !(
+          trimmedLine.startsWith("*return_") ||
+          trimmedLine.startsWith("; *return_")
+        )
+      ) {
+        // 通常のラベル行の処理
         blockStack.push(trimmedLine);
         currentIndent = blockStack.length - 1;
         result.push("  ".repeat(currentIndent) + trimmedLine);
