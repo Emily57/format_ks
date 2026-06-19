@@ -2,7 +2,7 @@
 class TextProcessor {
   constructor() {
     // タグのリスト
-    this.newlineAfterTags = ["r", "p", "s", "iscript", "endscript"];
+    this.newlineAfterTags = ["r", "p", "s", "iscript", "endscript", "endmacro"];
   }
 
   // メインの処理メソッド
@@ -24,7 +24,10 @@ class TextProcessor {
     // 5. ; end後の空行追加
     processedText = this.addEmptyLineAfterEnd(processedText);
 
-    // 6. [iscript], [endscript]の行頭化
+    // 5.5. [endmacro]後の空行追加
+    processedText = this.addEmptyLineAfterEndmacro(processedText);
+
+    // 6. [iscript], [endscript], [macro ...], [endmacro]の行頭化
     processedText = this.moveScriptTagsToLineStart(processedText);
 
     // 7. インデント処理
@@ -60,7 +63,10 @@ class TextProcessor {
         .join("|")})(?!\\n)`,
       "g",
     );
-    return text.replace(pattern, "$1\n");
+    let result = text.replace(pattern, "$1\n");
+    // [macro ...]タグの後に改行を追加
+    result = result.replace(/(\[macro\s[^\]]*\])(?!\n)/g, "$1\n");
+    return result;
   }
 
   // [p]タグ後に空行を追加
@@ -77,9 +83,19 @@ class TextProcessor {
       .replace(/; end\n\n(?=; end)/g, "; end\n");
   }
 
-  // [iscript], [endscript]を行頭に移動
+  // [endmacro]後に空行を追加
+  addEmptyLineAfterEndmacro(text) {
+    return text
+      .replace(/\[endmacro\]\n(?!\n|; end)/g, "[endmacro]\n\n")
+      .replace(/\[endmacro\]\n\n(?=; end)/g, "[endmacro]\n");
+  }
+
+  // [iscript], [endscript], [macro ...], [endmacro]を行頭に移動
   moveScriptTagsToLineStart(text) {
-    return text.replace(/([^\n])\[(iscript|endscript)\]/g, "$1\n[$2]");
+    let result = text.replace(/([^\n])\[(iscript|endscript|endmacro)\]/g, "$1\n[$2]");
+    // [macro ...]タグの行頭化
+    result = result.replace(/([^\n])(\[macro\s[^\]]*\])/g, "$1\n$2");
+    return result;
   }
 
   // インデントの適用
@@ -110,6 +126,20 @@ class TextProcessor {
       // [endscript]ブロックの終了
       if (trimmedLine.includes("[endscript]")) {
         isInScript = false;
+        if (currentIndent > 0) currentIndent--;
+        result.push("  ".repeat(currentIndent) + trimmedLine);
+        continue;
+      }
+
+      // [macro ...]ブロックの開始
+      if (trimmedLine.startsWith("[macro ") || trimmedLine === "[macro]") {
+        result.push("  ".repeat(currentIndent) + trimmedLine);
+        currentIndent++;
+        continue;
+      }
+
+      // [endmacro]ブロックの終了
+      if (trimmedLine.includes("[endmacro]")) {
         if (currentIndent > 0) currentIndent--;
         result.push("  ".repeat(currentIndent) + trimmedLine);
         continue;
