@@ -24,6 +24,9 @@ class TextProcessor {
     // 5. ; end後の空行追加
     processedText = this.addEmptyLineAfterEnd(processedText);
 
+    // 5.5. [endmacro]後の空行追加
+    processedText = this.addEmptyLineAfterEndmacro(processedText);
+
     // 6. [iscript], [endscript], [macro ...], [endmacro]の行頭化
     processedText = this.moveScriptTagsToLineStart(processedText);
 
@@ -78,6 +81,13 @@ class TextProcessor {
     return text
       .replace(/; end\n(?!\n|; end)/g, "; end\n\n")
       .replace(/; end\n\n(?=; end)/g, "; end\n");
+  }
+
+  // [endmacro]後に空行を追加
+  addEmptyLineAfterEndmacro(text) {
+    return text
+      .replace(/\[endmacro\]\n(?!\n|; end)/g, "[endmacro]\n\n")
+      .replace(/\[endmacro\]\n\n(?=; end)/g, "[endmacro]\n");
   }
 
   // [iscript], [endscript], [macro ...], [endmacro]を行頭に移動
