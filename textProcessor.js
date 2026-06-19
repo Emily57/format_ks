@@ -58,7 +58,7 @@ class TextProcessor {
       `(${this.newlineAfterTags
         .map((tag) => `\\[${tag}\\]`)
         .join("|")})(?!\\n)`,
-      "g"
+      "g",
     );
     return text.replace(pattern, "$1\n");
   }
@@ -120,7 +120,9 @@ class TextProcessor {
         (trimmedLine.startsWith("*") || trimmedLine.startsWith("; *")) &&
         !(
           trimmedLine.startsWith("*return_") ||
-          trimmedLine.startsWith("; *return_")
+          trimmedLine.startsWith("; *return_") ||
+          trimmedLine.startsWith("*mark_read") ||
+          trimmedLine.startsWith("; *mark_read")
         )
       ) {
         // 通常のラベル行の処理
